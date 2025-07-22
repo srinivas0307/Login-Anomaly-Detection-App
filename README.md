@@ -31,3 +31,77 @@ It includes real-time **alerts**, detailed **dashboards** for **visualizatio
 | Failure Ratio (Anomalous Only) | Scatter |
 | Anomaly Trend Over Time | TimeChart |
 | Top Risky Users | Table |
+
+
+
+## 🔧 Setup and Installation
+
+### 1. Prerequisites
+
+- **Splunk Enterprise** (v8.0 or later recommended)
+- **Splunk Machine Learning Toolkit (MLTK)** installed
+- Admin access to Splunk Web
+- Optional: Access to login-related logs (with fields like `user`, `ip`, `action`, `_time`)
+
+### 2. Installation
+
+#### Method A: From Splunk Web UI
+
+1. Go to **Apps → Manage Apps → Install app from file**
+2. Upload the file `login_anomaly_detection_app.spl`
+3. Click **Upload**
+4. Restart Splunk if prompted
+
+#### Method B: Manual Installation (Linux)
+
+```bash
+# Move the SPL package into the apps directory
+sudo cp login_anomaly_detection_app.spl /opt/splunk/etc/apps/
+
+# Extract the app
+cd /opt/splunk/etc/apps/
+tar -xvzf login_anomaly_detection_app.spl
+
+# Restart Splunk
+sudo /opt/splunk/bin/splunk restart
+```
+
+---
+
+## ⚙️ Configuration
+
+### 1. Configure Data Inputs
+
+Ensure your Splunk index contains login logs with the following fields:
+- `user`
+- `ip`
+- `action` (e.g., success/failure)
+- `_time`
+
+Example SPL search used for feature extraction:
+```spl
+index=main sourcetype="your_login_data"
+| eval login_hour = tonumber(strftime(_time, "%H"))
+| stats count as total_logins, 
+        dc(ip) as unique_ips, 
+        sum(eval(action="failure")) as failures 
+  by user, login_hour, _time
+| eval failure_ratio = failures / total_logins
+```
+
+### 2. Model Configuration
+
+The app includes a pre-trained KMeans model:
+- `__mlspl_login_anomaly_kmeans_model.mlmodel` (stored in `lookups/`)
+- Automatically applied via `apply` command in saved searches and dashboards
+
+---
+
+
+##  Dependencies
+
+- Splunk MLTK (Machine Learning Toolkit)
+- Base Splunk installation (Enterprise or Free)
+- Your login logs indexed in Splunk
+
+---
