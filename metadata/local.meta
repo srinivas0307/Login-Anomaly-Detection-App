@@ -1,0 +1,26 @@
+[app/ui]
+version = 9.4.3
+modtime = 1753003670.662731000
+
+[app/launcher]
+version = 9.4.3
+modtime = 1753003670.663414000
+
+[views/login_anomaly_detection_dashboard]
+owner = srinivas
+version = 9.4.3
+modtime = 1753021633.052782000
+
+[savedsearches/Anomalous%20Login%20Alert]
+access = read : [ * ], write : [ * ]
+export = none
+owner = srinivas
+version = 9.4.3
+modtime = 1753185791.986404000
+
+[savedsearches/Impossible%20Travel%20Alert]
+access = read : [ * ], write : [ * ]
+export = none
+owner = srinivas
+version = 9.4.3
+modtime = 1753185801.075220000

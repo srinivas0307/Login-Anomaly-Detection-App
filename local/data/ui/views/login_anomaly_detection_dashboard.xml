@@ -1,0 +1,136 @@
+<dashboard version="1.1" theme="light">
+  <label>Login Anomaly Detection Dashboard</label>
+  <description>Dashboard of login anomaly detection app</description>
+  <row>
+    <panel>
+      <chart>
+        <title>Timechart of action Count Over Time</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| timechart count by action</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top 10 Users</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| top user limit=10</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="Splunk_ML_Toolkit.HeatmapViz">
+        <title>Count of Users by Hour</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| eval hour = strftime(_time, "%H")
+| chart count over user by hour</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="drilldown">none</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Anomalous vs Normal</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| eval login_hour = tonumber(strftime(_time, "%H"))
+| stats count as total_logins, sum(eval(action="failure")) as failures by user, login_hour
+| eval failure_ratio = failures / total_logins
+| table user, login_hour, total_logins, failures, failure_ratio</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Failure Ratio by Login Hour (Anomalous Only)</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| eval login_hour = tonumber(strftime(_time, "%H"))
+| stats count as total_logins,
+    sum(eval(action="failure")) as failures
+    by user, login_hour
+| eval failure_ratio = failures / total_logins
+| apply login_anomaly_kmeans_model
+| where cluster = 0
+| table user login_hour failure_ratio</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="charting.chart">scatter</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Anomaly Trend Over Time</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| eval login_hour = tonumber(strftime(_time, "%H"))
+| stats count as total_logins, sum(eval(action="failure")) as failures by user, login_hour, _time
+| eval failure_ratio = failures / total_logins
+| apply login_anomaly_kmeans_model
+| eval label = if(cluster==0, "Anomalous", "Normal")
+| timechart span=1h count by label</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top Risky Users</title>
+        <search>
+          <query>index=main sourcetype="csv"
+| eval login_hour = tonumber(strftime(_time, "%H"))
+| stats count as total_logins, 
+        dc(ip) as unique_ips, 
+        sum(eval(action="failure")) as failures 
+  by user, login_hour, _time
+| eval failure_ratio = failures / total_logins
+| streamstats count as unique_id
+| apply login_anomaly_kmeans_model
+| where cluster = 0
+| stats count as anomaly_count by user
+| sort - anomaly_count
+| head 10</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

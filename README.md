@@ -104,4 +104,36 @@ The app includes a pre-trained KMeans model:
 - Base Splunk installation (Enterprise or Free)
 - Your login logs indexed in Splunk
 
+## File Structure
+
+```
+login_anomaly_detection_app/
+├── appserver/
+│   └── static/
+│       └── my_dashboard.xml
+├── metadata/
+│   ├── default.meta
+│   └── local.meta
+├── default/
+│   ├── app.conf
+│   ├── savedsearches.conf
+│   └── data/
+│       └── ui/
+│           ├── nav/
+│           │   └── default.xml
+│           └── views/
+│               ├── login_anomaly_detection_dashboard.xml
+│               └── README
+├── bin/
+│   └── README
+└── lookups/
+    └── __mlspl_login_anomaly_kmeans_model.mlmodel
+```
+
+
 ---
+
+
+
+
+
