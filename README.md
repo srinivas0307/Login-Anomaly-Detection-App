@@ -34,7 +34,7 @@ It includes real-time **alerts**, detailed **dashboards** for **visualizatio
 
 
 
-## 🔧 Setup and Installation
+## Setup and Installation
 
 ### 1. Prerequisites
 
@@ -68,7 +68,7 @@ sudo /opt/splunk/bin/splunk restart
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### 1. Configure Data Inputs
 
